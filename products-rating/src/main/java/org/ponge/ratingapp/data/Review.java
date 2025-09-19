@@ -34,6 +34,6 @@ public class Review extends PanacheEntity {
         Double avg = find("#AverageRating", productId)
                 .project(Double.class)
                 .firstResult();
-        return avg != null ? avg : -1.0d;
+        return (avg != null) ? avg : -1.0d;
     }
 }

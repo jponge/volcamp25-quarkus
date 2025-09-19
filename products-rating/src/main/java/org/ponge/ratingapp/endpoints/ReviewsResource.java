@@ -1,6 +1,7 @@
 package org.ponge.ratingapp.endpoints;
 
 import io.quarkus.logging.Log;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
@@ -9,8 +10,11 @@ import jakarta.validation.constraints.Min;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.reactive.messaging.Channel;
+import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.ponge.ratingapp.data.Product;
 import org.ponge.ratingapp.data.Review;
+import org.ponge.ratingapp.eventing.ReviewPostedEvent;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -47,13 +51,21 @@ public class ReviewsResource {
         review.comment = newReview.comment;
         Review.persist(review);
 
+        ReviewPostedEvent reviewEvent = ReviewPostedEvent.of(product, review);
+        reviewEmitter.send(reviewEvent);
+
         return Response
                 .status(Response.Status.CREATED)
                 .entity(review)
                 .build();
     }
 
-    record Average(long id, double rating) {}
+    @Inject
+    @Channel("new-reviews")
+    Emitter<ReviewPostedEvent> reviewEmitter;
+
+    record Average(long id, double rating) {
+    }
 
     @GET
     @Path("/average/{id}")
