@@ -58,10 +58,11 @@ public class ReviewsResource {
     @GET
     @Path("/average/{id}")
     public Average average(Long id) {
-        try {
-            return new Average(id, Review.averageRating(id));
-        } catch (NoSuchElementException e) {
+        double avg = Review.averageRating(id);
+        if (avg < 0d) {
             throw new NotFoundException("Product not found");
+        } else {
+            return new Average(id, avg);
         }
     }
 

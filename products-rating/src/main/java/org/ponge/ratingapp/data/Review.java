@@ -5,10 +5,15 @@ import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedQuery;
 
 import java.util.List;
 
 @Entity
+@NamedQuery(
+        name="AverageRating",
+        query = "select avg(r.rating) from Review r where r.product.id = ?1"
+)
 public class Review extends PanacheEntity {
 
     @ManyToOne(optional = false)
@@ -26,8 +31,9 @@ public class Review extends PanacheEntity {
     }
 
     public static Double averageRating(Long productId) {
-        return findByProductId(productId).stream()
-                .mapToDouble(r -> r.rating)
-                .average().orElseThrow();
+        Double avg = find("#AverageRating", productId)
+                .project(Double.class)
+                .firstResult();
+        return avg != null ? avg : -1.0d;
     }
 }
