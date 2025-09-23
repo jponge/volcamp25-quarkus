@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <title>Dashboard</title>
+</head>
+<body>
+
+<main class="container-fluid">
+    <h1>Last 25 reviews</h1>
+    <div>
+        <progress/>
+    </div>
+    <div>
+        <p id="last-bad-review"></p>
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th scope="col">Product</th>
+            <th scope="col">Rating</th>
+            <th scope="col">Comment</th>
+        </tr>
+        </thead>
+        <tbody id="reviews-table">
+    </table>
+
+</main>
+
+<script>
+    function start() {
+
+        const reviews = new EventSource("/live");
+        reviews.onmessage = (update) => {
+            const data = JSON.parse(update.data);
+            const tbody = document.getElementById("reviews-table");
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${data.productName}</td>
+                <td>${data.rating}</td>
+                <td>${data.comment}</td>
+            `;
+            tbody.prepend(row);
+            if (tbody.children.length > 25) {
+                tbody.children[tbody.children.length - 1].remove();
+            }
+        };
+        reviews.onerror = (error) => {
+            console.error(error);
+        };
+
+        const badReviews = new EventSource("/bad-reviews");
+        badReviews.onmessage = (update) => {
+            const data = JSON.parse(update.data);
+            document.getElementById("last-bad-review").innerHTML =
+                `<blockquote>
+                    “${data.comment}”
+                    <footer>
+                       <cite>— <mark>${data.productName} (${data.rating}/5)</mark></cite>
+                    </footer>
+                 </blockquote>
+                `;
+        };
+
+    }
+
+    start();
+</script>
+
+</body>
+</html>

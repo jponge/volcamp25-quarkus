@@ -1,0 +1,3 @@
+[submodule "datafaker-extension"]
+	path = datafaker-extension
+	url = https://github.com/jponge/datafaker-extension.git

@@ -1,9 +1,7 @@
 package org.ponge.ratingapp.endpoints;
 
 import io.quarkus.logging.Log;
-import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -17,7 +15,6 @@ import org.ponge.ratingapp.data.Review;
 import org.ponge.ratingapp.eventing.ReviewPostedEvent;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 
 @Path("/reviews")
 @Produces(MediaType.APPLICATION_JSON)
@@ -54,13 +51,13 @@ public class ReviewsResource {
         ReviewPostedEvent reviewEvent = ReviewPostedEvent.of(product, review);
         reviewEmitter.send(reviewEvent);
 
+        Log.info("Review posted: " + newReview);
         return Response
                 .status(Response.Status.CREATED)
                 .entity(review)
                 .build();
     }
 
-    @Inject
     @Channel("new-reviews")
     Emitter<ReviewPostedEvent> reviewEmitter;
 

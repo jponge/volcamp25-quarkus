@@ -1,5 +1,6 @@
 package org.ponge.ratingapp.endpoints;
 
+import io.quarkus.logging.Log;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -32,6 +33,7 @@ public class ProductsResource {
     @Transactional
     public Response create(Product product) {
         Product.persist(product);
+        Log.info("Product created: " + product.name);
         return Response
                 .status(Response.Status.CREATED)
                 .entity(product)
