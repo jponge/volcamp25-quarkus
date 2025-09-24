@@ -1,0 +1,29 @@
+## ------------------------------------------------------------------------- ##
+## Stage 1 : build with maven builder image with native capabilities
+## ------------------------------------------------------------------------- ##
+
+FROM quay.io/quarkus/ubi9-quarkus-mandrel-builder-image:jdk-24 AS build
+USER quarkus
+WORKDIR /code
+COPY --chown=quarkus:quarkus .mvn/ .mvn
+COPY --chown=quarkus:quarkus mvnw pom.xml ./
+COPY --chown=quarkus:quarkus todo-app-quarkus/ ./todo-app-quarkus
+COPY --chown=quarkus:quarkus todo-app-spring/ ./todo-app-spring
+RUN ./mvnw -B clean org.apache.maven.plugins:maven-dependency-plugin:3.8.1:go-offline
+RUN ./mvnw -B clean native:compile -Pnative -DskipTests -f todo-app-spring
+
+## ------------------------------------------------------------------------- ##
+## Stage 2 : create the container final image
+## ------------------------------------------------------------------------- ##
+
+FROM quay.io/quarkus/ubi9-quarkus-micro-image:2.0
+WORKDIR /work/
+COPY --from=build /code/todo-app-spring/target/todo-app-spring /work/application
+# set up permissions for user `1001`
+RUN chmod 775 /work /work/application \
+  && chown -R 1001 /work \
+  && chmod -R "g+rwX" /work \
+  && chown -R 1001:root /work
+EXPOSE 8080
+USER 1001
+CMD ["./application", "-Dspring.profiles.active=production"]

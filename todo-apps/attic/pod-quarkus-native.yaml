@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-quarkus-native
+spec:
+  containers:
+    - name: todo-db
+      image: postgres:16-alpine
+      env:
+        - name: POSTGRES_USER
+          value: todos
+        - name: POSTGRES_PASSWORD
+          value: todos
+        - name: POSTGRES_DB
+          value: todos
+    - name: quarkus-app
+      image: localhost/todo-app/quarkus-native
+      ports:
+        - containerPort: 8080
+          hostPort: 63001
+      env:
+        - name: QUARKUS_DATASOURCE_JDBC_URL
+          value: jdbc:postgresql://localhost:5432/todos
+        - name: QUARKUS_DATASOURCE_USERNAME
+          value: todos
+        - name: QUARKUS_DATASOURCE_PASSWORD
+          value: todos
+        - name: QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION
+          value: drop-and-create

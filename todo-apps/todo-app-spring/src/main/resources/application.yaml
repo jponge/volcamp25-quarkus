@@ -1,0 +1,18 @@
+spring:
+  jpa:
+    hibernate.ddl-auto: create-drop
+    database: POSTGRESQL
+
+---
+spring:
+  config:
+    activate:
+      on-profile: production
+  datasource:
+      url: jdbc:postgresql://localhost:5432/todos
+      username: todos
+      password: todos
+      driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update

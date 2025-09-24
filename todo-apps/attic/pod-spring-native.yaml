@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-spring-native
+spec:
+  containers:
+    - name: todo-db
+      image: postgres:16-alpine
+      env:
+        - name: POSTGRES_USER
+          value: todos
+        - name: POSTGRES_PASSWORD
+          value: todos
+        - name: POSTGRES_DB
+          value: todos
+    - name: spring-app
+      image: localhost/todo-app/spring-native
+      ports:
+        - containerPort: 8080
+          hostPort: 58001
+      env:
+        - name: SPRING_DATASOURCE_URL
+          value: jdbc:postgresql://localhost:5432/todos
+        - name: SPRING_DATASOURCE_USERNAME
+          value: todos
+        - name: SPRING_DATASOURCE_PASSWORD
+          value: todos
+        - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+          value: create-drop
