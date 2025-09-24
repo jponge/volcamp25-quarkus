@@ -1,5 +1,6 @@
 package org.ponge.reviewscli;
 
+import io.quarkus.logging.Log;
 import io.quarkus.runtime.Quarkus;
 import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.core.Vertx;
@@ -55,7 +56,7 @@ public class ReviewsCommand implements Runnable {
         vertx = Vertx.vertx();
         webClient = WebClient.create(vertx);
 
-        System.out.println("🎯 Target host [" + host + "] on port [" + port + "], period [" + period + "]ms");
+        Log.info("🎯 Target host [" + host + "] on port [" + port + "], period [" + period + "]ms");
 
         Faker faker = new Faker();
         List<String> generatedProducts = faker.stream(
@@ -84,7 +85,7 @@ public class ReviewsCommand implements Runnable {
                     body.getString("description")
             );
             products.add(newProduct);
-            System.out.println("⚡️ New product added: " + newProduct);
+            Log.info("⚡️ New product added: " + body.encode());
         });
 
         Random random = new Random();
@@ -101,11 +102,11 @@ public class ReviewsCommand implements Runnable {
                     .sendJsonObject(review)
                     .subscribe().with(response -> {
                         if (response.statusCode() == 201) {
-                            System.out.println("✨ " + product.name + " rated " + rating + ": " + comment);
+                            Log.info("✨ '" + product.name + "' rated " + rating + ": '" + comment + "'");
                         } else {
-                            System.out.println("🚨 Failed to post a review: status code " + response.statusCode());
+                            Log.error("🚨 Failed to post a review: status code " + response.statusCode());
                         }
-                    }, err -> System.out.println("🚨 Failed to post a review: " + err.getMessage()));
+                    }, err -> Log.error("🚨 Failed to post a review", err));
 
         });
 
