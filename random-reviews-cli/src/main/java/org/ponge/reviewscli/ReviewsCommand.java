@@ -49,10 +49,6 @@ public class ReviewsCommand implements Runnable {
 
     @Override
     public void run() {
-        setup();
-    }
-
-    private void setup() {
         vertx = Vertx.vertx();
         webClient = WebClient.create(vertx);
 
@@ -76,6 +72,11 @@ public class ReviewsCommand implements Runnable {
                     .as(BodyCodec.jsonObject())
                     .sendJsonObjectAndAwait(product);
             if (response.statusCode() == 404) {
+                Log.warn("⚠️ Product not found (status 404): " + name);
+                return;
+            }
+            if (response.statusCode() == 500) {
+                Log.error("🚨 Product could not be added (status 500): " + name);
                 return;
             }
             JsonObject body = response.body();
