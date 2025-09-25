@@ -3,7 +3,7 @@ start-infra:
         -e POSTGRES_USER=todos \
         -e POSTGRES_PASSWORD=todos \
         -e POSTGRES_DB=todos \
-        -p 5432:5432 postgres:16-alpine
+        -p 5432:5432 postgres:16
 
 stop-infra:
     podman stop todo-database
@@ -51,6 +51,58 @@ populate host:
     # Add and complete a todo
     curl -s -X POST -H "Content-Type: application/json" -d '{"title":"Todo 5"}' {{host}}/api | jq '.id' | xargs -I {} curl -X PATCH -H "Content-Type: application/json" -d '{"completed":true, "title": "Todo 5"}' {{host}}/api/{}
 
-load host:
-    wrk.sh --latency --timeout 1s -t 2 -c 40 -d 10s {{host}}/api
+stress host t="2" c="100" d="10s" timeout="1s":
+    jbang wrk@hyperfoil -t{{t}} -c{{c}} -d{{d}} --timeout {{timeout}} {{host}}/api
 
+latency host R="10000" t="2" c="100" d="30s" timeout="1s":
+    jbang wrk2@hyperfoil -t{{t}} -c{{c}} -d{{d}} -R {{R}} --timeout {{timeout}} --latency {{host}}/api
+
+build-quarkus-container-native:
+    podman build -f Containerfile.quarkus-native -t todo-app/quarkus-native
+
+build-quarkus-container-jvm:
+    ./mvnw package -DskipTests -f todo-app-quarkus
+    podman build -f Containerfile.quarkus-jvm -t todo-app/quarkus-jvm
+
+build-spring-container-native:
+    podman build -f Containerfile.spring-native -t todo-app/spring-native
+
+build-spring-container-jvm:
+    ./mvnw package -DskipTests -f todo-app-spring
+    podman build -f Containerfile.spring-jvm -t todo-app/spring-jvm
+
+start-quarkus-container-native:
+    podman kube play --replace pod-quarkus-native.yaml
+
+stop-quarkus-container-native:
+    podman pod rm pod-quarkus-native --force
+
+start-quarkus-container-jvm:
+    podman kube play --replace pod-quarkus-jvm.yaml
+
+stop-quarkus-container-jvm:
+    podman pod rm pod-quarkus-jvm --force
+
+start-spring-container-native:
+    podman kube play --replace pod-spring-native.yaml
+
+stop-spring-container-native:
+    podman pod rm pod-spring-native --force
+
+start-spring-container-jvm:
+    podman kube play --replace pod-spring-jvm.yaml
+
+stop-spring-container-jvm:
+    podman pod rm pod-spring-jvm --force
+
+start-all-pods: start-quarkus-container-jvm start-quarkus-container-native start-spring-container-jvm start-spring-container-native
+    @echo ✅ All set!
+
+stop-all-pods: stop-quarkus-container-jvm stop-quarkus-container-native stop-spring-container-jvm stop-spring-container-native
+    @echo ✅ All done!
+
+populate-pods:
+    just populate http://localhost:63000
+    just populate http://localhost:63001
+    just populate http://localhost:58000
+    just populate http://localhost:58001

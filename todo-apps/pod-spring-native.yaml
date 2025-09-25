@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: pod-spring-jvm
+  name: pod-spring-native
 spec:
   containers:
     - name: todo-db
-      image: postgres:16-alpine
+      image: postgres:16
       env:
         - name: POSTGRES_USER
           value: todos
@@ -14,10 +14,11 @@ spec:
         - name: POSTGRES_DB
           value: todos
     - name: spring-app
-      image: localhost/todo-app/spring-jvm
+      image: localhost/todo-app/spring-native
+      restartPolicy: Always
       ports:
         - containerPort: 8080
-          hostPort: 58000
+          hostPort: 58001
       env:
         - name: SPRING_DATASOURCE_URL
           value: jdbc:postgresql://localhost:5432/todos
@@ -29,6 +30,8 @@ spec:
           value: create-drop
       resources:
         requests:
-          memory: "512M"
+          cpu: "2000m"
+          memory: "2Gi"
         limits:
-          memory: "512M"
+          cpu: "2000m"
+          memory: "2Gi"

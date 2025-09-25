@@ -5,7 +5,7 @@ metadata:
 spec:
   containers:
     - name: todo-db
-      image: postgres:16-alpine
+      image: postgres:16
       env:
         - name: POSTGRES_USER
           value: todos
@@ -15,6 +15,7 @@ spec:
           value: todos
     - name: quarkus-app
       image: localhost/todo-app/quarkus-jvm
+      restartPolicy: Always
       ports:
         - containerPort: 8080
           hostPort: 63000
@@ -29,6 +30,8 @@ spec:
           value: drop-and-create
       resources:
         requests:
-          memory: "256M"
+          cpu: "2000m"
+          memory: "500Mi"
         limits:
-          memory: "256M"
+          cpu: "2000m"
+          memory: "500Mi"
