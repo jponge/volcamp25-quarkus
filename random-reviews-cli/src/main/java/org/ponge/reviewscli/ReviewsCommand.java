@@ -56,10 +56,11 @@ public class ReviewsCommand implements Runnable {
 
         Faker faker = new Faker();
         List<String> generatedProducts = faker.stream(
-                        () -> faker.appliance().brand() + " - " + faker.appliance().equipment()
+                        () -> faker.appliance().brand() + " - " + faker.appliance().equipment(),
+                        () -> faker.book().author() + " - " + faker.book().title()
                 )
-                .minLen(4)
-                .maxLen(6)
+                .minLen(5)
+                .maxLen(15)
                 .<Stream<String>>generate()
                 .toList();
 
@@ -92,7 +93,7 @@ public class ReviewsCommand implements Runnable {
         Random random = new Random();
         vertx.setPeriodic(period, tick -> {
             Product product = products.get(random.nextInt(0, products.size()));
-            String comment = faker.chuckNorris().fact();
+            String comment = "I found it " + faker.word().adjective() + ". " + faker.chuckNorris().fact();
             int rating = random.nextInt(0, 6);
             JsonObject review = new JsonObject()
                     .put("productId", product.id)
