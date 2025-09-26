@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <title>Midas Touch</title>
+</head>
+<body>
+
+<main class="container-fluid">
+    <div id="products"></div>
+    <div id="search">
+        <form id="search-box">
+            <fieldset role="group">
+                <input name="product" autofocus placeholder="Product name" aria-label="Product" autocomplete="product">
+                <input type="submit" value="Find reviews">
+            </fieldset>
+            <fieldset role="group">
+                <label>
+                    <input type="checkbox" name="withAverage" checked/>
+                    Include the reviews average rating
+                </label>
+            </fieldset>
+        </form>
+    </div>
+    <div id="output">
+        <progress id="wait-signal" hidden></progress>
+        <div class="grid">
+            <div id="all-reviews"></div>
+            <div id="summary"></div>
+        </div>
+    </div>
+</main>
+
+<script>
+
+    async function fetchProducts() {
+        const resp = await fetch("product-names");
+        if (resp.ok) {
+            return await resp.json();
+        } else {
+            throw new Error(`Could not fetch the products list: ${resp.status}`);
+        }
+    }
+
+    async function start() {
+
+        const products = await fetchProducts();
+        document.getElementById("products").innerHTML = `<p>
+            <strong>Available products:</strong> ${products.join(", ")}
+        </p>`;
+
+        const box = document.getElementById("search-box");
+        const waitSignal = document.getElementById("wait-signal");
+
+        function starify(n) {
+            if (n == 0) {
+                return "(0/5)";
+            } else {
+                return `${"⭐️".repeat(n)} (${n}/5)`;
+            }
+        }
+
+        async function fetchReviewsAndUpdate(productName) {
+            const resp = await fetch(`/all-reviews/${productName}`);
+            if (resp.ok) {
+                const reviews = await resp.json();
+                document.getElementById("all-reviews").innerHTML = `<h3>Reviews</h3>
+                <ul>
+                    ${(reviews.map(review =>
+                        `<li><strong>${starify(review.rating)} - </strong> ${review.comment}</li>`)).join("\n")}
+                </ul>`;
+            } else {
+                throw new Error(`Could not fetch the reviews list: ${resp.status}`);
+            }
+        }
+
+        async function fetchSummaryAndUpdate(name, includeAverage) {
+            const resp = await fetch(`reviews?name=${encodeURIComponent(name)}&avg=${encodeURIComponent(includeAverage)}`);
+            if (resp.ok) {
+                const summary = await resp.text();
+                document.getElementById("summary").innerHTML = `<blockquote>${summary}</blockquote>`;
+            } else {
+                throw new Error(`Could not fetch the reviews: ${resp.status}`);
+            }
+        }
+
+        box.addEventListener("submit", async event => {
+            event.preventDefault();
+            const data = new FormData(event.target);
+            const name = data.get("product");
+            if (name.trim() === "") {
+                return;
+            }
+            const includeAverage = data.get("withAverage") === "on";
+            try {
+                waitSignal.hidden = false;
+                return await Promise.all([
+                    fetchReviewsAndUpdate(name),
+                    fetchSummaryAndUpdate(name, includeAverage),
+                ]);
+            } finally {
+                waitSignal.hidden = true;
+            }
+        });
+    }
+
+    start();
+
+</script>
+
+</body>
+</html>
