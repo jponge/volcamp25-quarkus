@@ -28,6 +28,17 @@ dev-spring:
 dev-quarkus:
     ./mvnw quarkus:dev -f todo-app-quarkus
 
+build-all:
+    ./mvnw clean
+    just build-quarkus-jvm
+    just build-quarkus-native
+    just build-spring-jvm
+    just build-spring-native
+    just build-quarkus-container-jvm
+    just build-quarkus-container-native
+    just build-spring-container-jvm
+    just build-spring-container-native
+
 build-quarkus-native:
     ./mvnw package -Pnative -DskipTests -f todo-app-quarkus
 
