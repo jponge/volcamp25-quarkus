@@ -1,4 +1,4 @@
-package org.ponge.reviewscli;
+package org.ponge.app;
 
 import io.quarkus.logging.Log;
 import io.quarkus.runtime.Quarkus;

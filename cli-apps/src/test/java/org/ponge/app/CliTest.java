@@ -1,4 +1,4 @@
-package org.ponge.reviewscli;
+package org.ponge.app;
 
 import io.quarkus.test.junit.main.Launch;
 import io.quarkus.test.junit.main.LaunchResult;
@@ -14,9 +14,8 @@ public class CliTest {
     @Launch(value = "--help", exitCode = 0)
     public void checkHelp(LaunchResult result) {
         String out = result.getOutput();
-        assertTrue(out.contains("[--host=<host>]"));
-        assertTrue(out.contains("[--period=<period>]"));
-        assertTrue(out.contains("[--port=<port>]"));
+        assertTrue(out.contains("My Awesome"));
+        assertTrue(out.contains("[--repeat"));
     }
 
     @Test
