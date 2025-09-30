@@ -8,11 +8,8 @@ import jakarta.validation.constraints.Min;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.microprofile.reactive.messaging.Channel;
-import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.ponge.ratingapp.data.Product;
 import org.ponge.ratingapp.data.Review;
-import org.ponge.ratingapp.eventing.ReviewPostedEvent;
 
 import java.util.List;
 
@@ -48,18 +45,12 @@ public class ReviewsResource {
         review.comment = newReview.comment;
         Review.persist(review);
 
-        ReviewPostedEvent reviewEvent = ReviewPostedEvent.of(product, review);
-        reviewEmitter.send(reviewEvent);
-
         Log.info("Review posted: " + newReview);
         return Response
                 .status(Response.Status.CREATED)
                 .entity(review)
                 .build();
     }
-
-    @Channel("new-reviews")
-    Emitter<ReviewPostedEvent> reviewEmitter;
 
     record Average(long id, double rating) {
     }
